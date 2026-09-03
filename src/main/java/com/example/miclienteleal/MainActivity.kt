@@ -18,9 +18,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,27 +34,47 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.miclienteleal.screens.feedbackScreen
+import com.example.miclienteleal.screens.FeedbackScreen
 import com.example.miclienteleal.screens.HomeScreen
 import com.example.miclienteleal.screens.ProfileScreen
 import com.example.miclienteleal.screens.SettingsScreen
 import com.example.miclienteleal.screens.LoginScreen
 import com.example.miclienteleal.ui.theme.MiClienteLealTheme
+import com.example.miclienteleal.ui.theme.ThemeMode
+import com.example.miclienteleal.ThemePreferences
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MiClienteLealTheme {
-                AppResponsive()
+            val context = LocalContext.current
+            val themePreferences = remember { ThemePreferences(context) }
+            val scope = rememberCoroutineScope()
+
+            val currentTheme by themePreferences.themeModeFlow.collectAsState(initial = ThemeMode.SYSTEM)
+            val activeTheme = currentTheme ?: ThemeMode.SYSTEM
+
+            MiClienteLealTheme(themeMode = activeTheme) {
+                AppResponsive(
+                    currentTheme = activeTheme,
+                    onThemeChange = { newTheme ->
+                        scope.launch {
+                            themePreferences.saveThemeMode(newTheme)
+                        }
+                    }
+                )
             }
         }
     }
@@ -64,7 +82,10 @@ class MainActivity : ComponentActivity() {
 
 @Preview
 @Composable
-fun AppResponsive() {
+fun AppResponsive(
+    currentTheme: ThemeMode = ThemeMode.SYSTEM,
+    onThemeChange: (ThemeMode) -> Unit = {}
+) {
     var currentScreen by remember { mutableStateOf("home") }
 
     BackHandler(enabled = currentScreen != "home") {
@@ -105,8 +126,8 @@ fun AppResponsive() {
                             NavigationDrawerItem(
                                 icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
                                 label = { Text("Mi Cuenta") },
-                                selected = currentScreen == "login",
-                                onClick = { currentScreen = "login" }
+                                selected = currentScreen == "profile",
+                                onClick = { currentScreen = "profile" }
                             )
                         }
                         Spacer(modifier = Modifier.weight(1F))
@@ -134,7 +155,12 @@ fun AppResponsive() {
                     )
                 }
             ) {innerPadding ->
-                MainContent(currentScreen = currentScreen)
+                MainContent(
+                    currentScreen = currentScreen,
+                    currentTheme = currentTheme,
+                    onThemeChange = onThemeChange,
+                    modifier = Modifier.padding(innerPadding)
+                )
             }
         }
     } else {
@@ -148,7 +174,7 @@ fun AppResponsive() {
                     "profile" -> "Mi Perfil"
                     "feedback" -> "Enviar comentarios"
                     "settings" -> "Configuración"
-                    else -> ""
+                    else -> "AndroidApp"
                 }
                 @OptIn(ExperimentalMaterial3Api::class)
                 TopAppBar(
@@ -205,27 +231,36 @@ fun AppResponsive() {
                         label = { Text("Inicio") }
                     )
                     NavigationBarItem(
-                        selected = currentScreen == "login",
-                        onClick = { currentScreen = "login" },
+                        selected = currentScreen == "profile",
+                        onClick = { currentScreen = "profile" },
                         icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Mi cuenta") },
                         label = { Text("Mi Cuenta") }
                     )
                 }
             }
         ) { innerPadding ->
-            MainContent(currentScreen = currentScreen, modifier = Modifier.padding(innerPadding))
+            MainContent(
+                currentScreen = currentScreen,
+                currentTheme = currentTheme,
+                onThemeChange = onThemeChange,
+                modifier = Modifier.padding(innerPadding)
+            )
         }
     }
 }
 
 @Composable
-fun MainContent (currentScreen: String, modifier: Modifier = Modifier) {
+fun MainContent (
+    currentScreen: String,
+    currentTheme: ThemeMode,
+    onThemeChange: (ThemeMode) -> Unit = {},
+    modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
         when (currentScreen) {
             "home" -> HomeScreen()
-            "profile" -> LoginScreen()
-            "settings" -> SettingsScreen()
-            "feedback" -> feedbackScreen()
+            "profile" -> ProfileScreen()
+            "settings" -> SettingsScreen(currentTheme, onThemeChange)
+            "feedback" -> FeedbackScreen()
             "login" -> LoginScreen()
         }
     }
