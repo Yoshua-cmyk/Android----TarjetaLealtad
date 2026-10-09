@@ -18,10 +18,13 @@ import androidx.compose.material.icons.filled.Animation
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Transcribe
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
@@ -124,9 +127,11 @@ fun SettingsScreen(
                         icon = Icons.Default.Brush,
                         title = "Cambiar tema",
                         value = when (currentTheme) {
-                            ThemeMode.LIGHT -> "Abrazo del día"
-                            ThemeMode.DARK -> "Suspiro de noche"
-                            ThemeMode.SYSTEM -> "Seguir al sistema"
+                            ThemeMode.LIGHT -> "Sonrisa del sol"
+                            ThemeMode.SUNSET -> "Sombra del ocaso"
+                            ThemeMode.DARK -> "Manto de luna"
+                            ThemeMode.SYSTEM -> "Ritmo Natural"
+                            ThemeMode.DYNAMIC -> "Baile del sol"
                         },
                         onClick = { showThemeDialog = true }
                     )
@@ -134,6 +139,13 @@ fun SettingsScreen(
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+
+                    AndroidInfoTile(
+                        icon = Icons.Default.Translate,
+                        title = "Cambiar idioma",
+                        value = "Selecciona tu idioma preferidoß",
+                        onClick = { }
                     )
 
                     AndroidInfoTile(
@@ -288,19 +300,29 @@ fun ThemeSelectionDialog(
         text = {
             Column{
                 ThemeOptionRow(
-                    text = "Abrazo del día",
+                    text = "Sonrisa del sol (claro)",
                     selected = tempTheme == ThemeMode.LIGHT,
                     onClick = { tempTheme = ThemeMode.LIGHT }
                 )
                 ThemeOptionRow(
-                    text = "Suspiro de noche",
+                    text = "Sombra del ocaso (atardecer)",
+                    selected = tempTheme == ThemeMode.SUNSET,
+                    onClick = { tempTheme = ThemeMode.SUNSET }
+                )
+                ThemeOptionRow(
+                    text = "Manto de luna (Oscuro)",
                     selected = tempTheme == ThemeMode.DARK,
                     onClick = { tempTheme = ThemeMode.DARK }
                 )
                 ThemeOptionRow(
-                    text = "Seguir al sistema",
+                    text = "Ritmo Natural (Del sistema)",
                     selected = tempTheme == ThemeMode.SYSTEM,
                     onClick = { tempTheme = ThemeMode.SYSTEM }
+                )
+                ThemeOptionRow(
+                    text = "Baile del sol (Dinámico)",
+                    selected = tempTheme == ThemeMode.DYNAMIC,
+                    onClick = { tempTheme = ThemeMode.DYNAMIC }
                 )
             }
         },

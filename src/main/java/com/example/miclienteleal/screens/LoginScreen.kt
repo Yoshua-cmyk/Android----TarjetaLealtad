@@ -67,6 +67,7 @@ fun LoginScreen(
     var isPasswordVisible by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background

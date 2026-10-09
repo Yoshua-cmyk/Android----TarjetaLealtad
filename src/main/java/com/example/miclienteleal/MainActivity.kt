@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
@@ -39,11 +40,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.miclienteleal.screens.FeedbackScreen
 import com.example.miclienteleal.screens.HomeScreen
 import com.example.miclienteleal.screens.ProfileScreen
@@ -52,6 +57,7 @@ import com.example.miclienteleal.screens.LoginScreen
 import com.example.miclienteleal.ui.theme.MiClienteLealTheme
 import com.example.miclienteleal.ui.theme.ThemeMode
 import com.example.miclienteleal.ThemePreferences
+import com.example.miclienteleal.screens.ModifyProfileScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -73,23 +79,33 @@ class MainActivity : ComponentActivity() {
                         scope.launch {
                             themePreferences.saveThemeMode(newTheme)
                         }
-                    }
+                    },
+                    onNavigate = {}
                 )
             }
         }
     }
 }
 
+object destinations {
+    const val HOME = "HomeScreen"
+    const val PROFILE = "ProfileScreen"
+    const val MODIFY_PROFILE = "ModifyProfileScreen"
+    const val SETTINGS = "SettingsScreen"
+    const val FEEDBACK = "CommentsScreen"
+    const val LOGIN = "LoginScreen"
+}
 @Preview
 @Composable
 fun AppResponsive(
     currentTheme: ThemeMode = ThemeMode.SYSTEM,
-    onThemeChange: (ThemeMode) -> Unit = {}
+    onThemeChange: (ThemeMode) -> Unit = {},
+    onNavigate: (String) -> Unit = {}
 ) {
-    var currentScreen by remember { mutableStateOf("home") }
+    var currentScreen by rememberSaveable() { mutableStateOf(destinations.HOME) }
 
-    BackHandler(enabled = currentScreen != "home") {
-        currentScreen = "home"
+    BackHandler(enabled = currentScreen != destinations.HOME) {
+        currentScreen = destinations.HOME
     }
 
     val adaptiveInfo = LocalConfiguration.current
@@ -118,30 +134,30 @@ fun AppResponsive(
                     ) {
                         Column {
                             NavigationDrawerItem(
-                                icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                                icon = { Icon(Icons.Default.Home, contentDescription = "Principal") },
                                 label = { Text("Inicio") },
                                 selected = currentScreen == "home",
-                                onClick = { currentScreen = "home" }
+                                onClick = { currentScreen = destinations.HOME }
                             )
                             NavigationDrawerItem(
-                                icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
+                                icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Mi cuenta") },
                                 label = { Text("Mi Cuenta") },
                                 selected = currentScreen == "profile",
-                                onClick = { currentScreen = "profile" }
+                                onClick = { currentScreen = destinations.PROFILE }
                             )
                         }
                         Spacer(modifier = Modifier.weight(1F))
                         NavigationDrawerItem(
-                            icon = {Icon(Icons.Default.MailOutline, contentDescription = null)},
+                            icon = {Icon(Icons.Default.MailOutline, contentDescription = "Enviar comentarios")},
                             label = { Text("Comentarios")},
                             selected = currentScreen == "feedback",
-                            onClick = {currentScreen = "feedback"}
+                            onClick = {currentScreen = destinations.FEEDBACK}
                         )
                         NavigationDrawerItem(
-                            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                            icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
                             label = { Text("Configuración") },
                             selected = currentScreen == "settings",
-                            onClick = { currentScreen = "settings" }
+                            onClick = { currentScreen = destinations.SETTINGS }
                         )
                     }
                 }
@@ -169,12 +185,13 @@ fun AppResponsive(
         Scaffold(
             topBar = {
                 val topBarTitle = when (currentScreen) {
-                    "home" -> "Principal"
-                    "login" -> "Iniciar sesión o Registrarte"
-                    "profile" -> "Mi Perfil"
-                    "feedback" -> "Enviar comentarios"
-                    "settings" -> "Configuración"
-                    else -> "AndroidApp"
+                    destinations.HOME -> "Principal"
+                    destinations.LOGIN -> "Iniciar sesión o Registrarte"
+                    destinations.PROFILE -> "Mi Perfil"
+                    destinations.MODIFY_PROFILE -> "Editar Perfil"
+                    destinations.FEEDBACK -> "Enviar comentarios"
+                    destinations.SETTINGS -> "Configuración"
+                    else -> ""
                 }
                 @OptIn(ExperimentalMaterial3Api::class)
                 TopAppBar(
@@ -201,7 +218,7 @@ fun AppResponsive(
                                 text = { Text("Envia tus comentarios") },
                                 onClick = {
                                     showMenu = false
-                                    currentScreen = "feedback"
+                                    currentScreen = destinations.FEEDBACK
                                 }
                             )
                             DropdownMenuItem(
@@ -214,7 +231,7 @@ fun AppResponsive(
                                 text = { Text("Configuración") },
                                 onClick = {
                                     showMenu = false
-                                    currentScreen = "settings"
+                                    currentScreen = destinations.SETTINGS
                                 }
                             )
 
@@ -225,14 +242,14 @@ fun AppResponsive(
             bottomBar = {
                 NavigationBar{
                     NavigationBarItem(
-                        selected = currentScreen == "home",
-                        onClick = { currentScreen = "home" },
+                        selected = currentScreen == destinations.HOME,
+                        onClick = { currentScreen = destinations.HOME },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                         label = { Text("Inicio") }
                     )
                     NavigationBarItem(
-                        selected = currentScreen == "profile",
-                        onClick = { currentScreen = "profile" },
+                        selected = currentScreen == destinations.PROFILE || currentScreen == destinations.MODIFY_PROFILE,
+                        onClick = { currentScreen = destinations.PROFILE },
                         icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Mi cuenta") },
                         label = { Text("Mi Cuenta") }
                     )
@@ -243,6 +260,7 @@ fun AppResponsive(
                 currentScreen = currentScreen,
                 currentTheme = currentTheme,
                 onThemeChange = onThemeChange,
+                onNavigate = { destinations -> currentScreen = destinations },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -253,15 +271,26 @@ fun AppResponsive(
 fun MainContent (
     currentScreen: String,
     currentTheme: ThemeMode,
+    usrBirthday: String = "",
+    onBirthdayChange: (String) -> Unit = {},
     onThemeChange: (ThemeMode) -> Unit = {},
+    onNavigate: (String) -> Unit = {},
     modifier: Modifier = Modifier) {
+
     Box(modifier = modifier.fillMaxSize()) {
         when (currentScreen) {
-            "home" -> HomeScreen()
-            "profile" -> ProfileScreen()
-            "settings" -> SettingsScreen(currentTheme, onThemeChange)
-            "feedback" -> FeedbackScreen()
-            "login" -> LoginScreen()
+            destinations.HOME -> HomeScreen()
+            destinations.PROFILE -> ProfileScreen(
+                onEditProfileClick = { onNavigate(destinations.MODIFY_PROFILE)
+                })
+            destinations.MODIFY_PROFILE -> ModifyProfileScreen(
+                onNavBack = { onNavigate(destinations.PROFILE) },
+                birthday = usrBirthday,
+                onBirthdayChange = onBirthdayChange
+            )
+            destinations.SETTINGS -> SettingsScreen(currentTheme, onThemeChange)
+            destinations.FEEDBACK -> FeedbackScreen()
+            destinations.LOGIN -> LoginScreen()
         }
     }
 }

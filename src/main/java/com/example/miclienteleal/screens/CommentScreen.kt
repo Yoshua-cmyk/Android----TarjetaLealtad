@@ -3,6 +3,8 @@ package com.example.miclienteleal.screens
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,9 +27,12 @@ fun FeedbackScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ){
+        val scrollState = rememberScrollState()
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
         ) { }
     }
 
